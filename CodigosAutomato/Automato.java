@@ -5,20 +5,36 @@ import java.io.IOException;
 public class Automato {
     // inicio no estado 0
     private static int estado = 0;
+    private static int currentLine = 1;
+    private static int currentColumn = 1;
+    private static String lexema = "";
+    private static boolean tokenUnico = false;
 
     public static void main(String[] args) {
+
         // convertendo o arquivo para uma array de char
         String codigo = fileToString("../CodigosAutomato/entrada.txt");
 
+        System.out.println(
+                "+-----+-----+-----------------+-----------------------+\n| LIN | COL |     TOKEN       |        LEXEMA         |\n+-----+-----+-----------------+-----------------------+");
         // um for each para percorrer o array
         for (char c : codigo.toCharArray()) {
+            if (c != '\n') {
+                lexema += c;
+            }
             // printar o c a ser analisado
-            System.out.printf("%c", c);
+            // System.out.printf("%c", c);
             // basicamente o loop consiste em verificar o estado atual (em int) e o char
             // atual
             if (estado == 0) {
                 if (Character.isDigit(c)) { // se for digito [0-9]
                     estado = 1;
+                } else if (Character.isAlphabetic(c)) {
+                    if (Character.isUpperCase(c)) {
+                        estado = 27;
+                    } else {
+                        estado = 28;
+                    }
                 } else if (c == '.') {
                     estado = 9;
                 } else if (c == ' ') { // reconhecer o espaço para não printar o TK_ERRO (Ainda não tratado)
@@ -29,6 +45,8 @@ public class Automato {
             } else if (estado == 1) {
                 if (Character.isDigit(c)) {
                     estado = 2;
+                } else if (c == 'x') {
+                    estado = 21;
                 } else if (c == '.') {
                     estado = 5;
                 } else {
@@ -92,44 +110,89 @@ public class Automato {
                 } else {
                     retornaToken(0); // rejeita só o '.'
                 }
+            } else if (estado == 27) {
+                if (c == 'x') {
+                    estado = 20;
+                } else if (Character.isAlphabetic(c)) {
+                    estado = 41;
+                }
+            } else if (estado == 20) {
+                if (Character.isDigit(c) || (c >= 'A' && c <= 'F')) {
+                    estado = 21;
+                } else {
+                    retornaToken(3);
+                }
+            } else if (estado == 21) {
+                if (Character.isDigit(c) || (c >= 'A' && c <= 'F')) {
+                    estado = 21;
+                } else {
+                    retornaToken(3);
+                }
+            }
+            if (c == '\n') {
+                currentLine++;
+                currentColumn = 1;
+            } else {
+                currentColumn++;
             }
             // System.out.println("->" + estado); // verificar os estados na hora de debugar
         }
 
-        // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de não
-        // ter retornado o token)
-        if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
-            retornaToken(1);
-        }
-        if (estado == 6 || estado == 5 || estado == 9 || estado == 7) {
-            retornaToken(2);
-        }
-        if (estado == 8) {
-            retornaToken(0);
-        }
+        /*
+         * // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de
+         * não
+         * // ter retornado o token)
+         * if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
+         * retornaToken(1);
+         * }
+         * if (estado == 6 || estado == 5 || estado == 9 || estado == 7) {
+         * retornaToken(2);
+         * }
+         * if (estado == 8) {
+         * retornaToken(0);
+         * }
+         * if (estado == 27 || estado == 41 || estado == 20 || estado == 21) {
+         * retornaToken(3);
+         * }
+         */
     }
 
-    // Função para retornar o token
     /*
+     * Função para retornar o token
      * 0 = TK_ERRO
      * 1 = TK_INT
      * 2 = TK_FLOAT
      */
     public static void retornaToken(int x) {
+        retornaToken(x, currentLine, currentColumn);
+    }
+
+    public static void retornaToken(int x, int line, int column) {
+        estado = 0;
+        String tokenName = "";
         switch (x) {
             case 0:
-                estado = 0;
-                System.out.println(" <- TK_ERRO");
+                tokenName = "TK_ERRO";
                 break;
             case 1:
-                estado = 0;
-                System.out.println(" <- TK_INT");
+                tokenName = "TK_INT";
                 break;
             case 2:
-                estado = 0;
-                System.out.println(" <- TK_FLOAT");
+                tokenName = "TK_FLOAT";
+                break;
+            case 3:
+                tokenName = "TK_HEX";
+                break;
+            case 4:
+                tokenName = "TK_OPERADOR";
                 break;
         }
+        if (tokenUnico) {
+            lexema = "";
+        }
+        System.out.printf("| %-3d | %-3d | %-15s | %-21s |\n+-----+-----+-----------------+-----------------------+\n",
+                line, column, tokenName, lexema);
+        lexema = "";
     }
 
     // Função para converter o arquivo em uma string (pega da internet)
@@ -138,7 +201,7 @@ public class Automato {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
+                stringBuilder.append(line).append("\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
