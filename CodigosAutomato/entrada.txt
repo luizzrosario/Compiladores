@@ -4,3 +4,4 @@ bAnAnA mAcA
 mAca MaAaa
 aaaaaaaa
 rotina
+fim_rotina se senao imprima leia para enquanto

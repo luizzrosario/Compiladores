@@ -38,9 +38,9 @@ public class Automato {
                 } else if (c == '.') {
                     estado = 9;
                 } else if (c == ' ') { // reconhecer o espaço para não printar o TK_ERRO (Ainda não tratado)
-                    estado = 0;
+                    lexema = "";
                 } else {
-                    retornaToken(0); // retorno do token de erro (caso 0)
+                    lexema = "";
                 }
             } else if (estado == 1) {
                 if (Character.isDigit(c)) {
@@ -123,18 +123,39 @@ public class Automato {
                     retornaToken(3);
                 }
             } else if (estado == 12) {
-                if (Character.isAlphabetic(c) && Character.isLowerCase(c)) {
+                lexema.replace(" ", "");
+                if (lexema.equals("rotina") || lexema.equals("fim_rotina") || lexema.equals("se")
+                        || lexema.equals("senao") || lexema.equals("imprima") || lexema.equals("leia")
+                        || lexema.equals("para") || lexema.equals("enquanto")) {
+                    tokenUnico = true;
+                }
+
+                if ((Character.isAlphabetic(c) && Character.isLowerCase(c) || c == '_')) {
                     switch (lexema) {
                         case "rotina":
                             retornaToken(5);
                             break;
                         case "fim_rotina":
+                            retornaToken(6);
+                            break;
                         case "se":
+                            retornaToken(7);
+                            break;
                         case "senao":
+                            retornaToken(8);
+                            break;
                         case "imprima":
+                            retornaToken(9);
+                            break;
                         case "leia":
+                            retornaToken(10);
+                            break;
                         case "para":
+                            retornaToken(11);
+                            break;
                         case "enquanto":
+                            retornaToken(12);
+                            break;
 
                         default:
                             estado = 12;
@@ -231,7 +252,28 @@ public class Automato {
                 tokenName = "TK_ID";
                 break;
             case 5:
-                tokenName = "TK_PALAVRA";
+                tokenName = "TK_ROTINA";
+                break;
+            case 6:
+                tokenName = "TK_FIM_ROTINA";
+                break;
+            case 7:
+                tokenName = "TK_SE";
+                break;
+            case 8:
+                tokenName = "TK_SENAO";
+                break;
+            case 9:
+                tokenName = "TK_IMPRIMA";
+                break;
+            case 10:
+                tokenName = "TK_LEIA";
+                break;
+            case 11:
+                tokenName = "TK_PARA";
+                break;
+            case 12:
+                tokenName = "TK_ENQUANTO";
                 break;
         }
         if (tokenUnico) {
