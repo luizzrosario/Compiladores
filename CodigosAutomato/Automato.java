@@ -31,9 +31,9 @@ public class Automato {
                     estado = 1;
                 } else if (Character.isAlphabetic(c)) {
                     if (Character.isUpperCase(c)) {
-                        estado = 27;
+                        estado = 10;
                     } else {
-                        estado = 28;
+                        estado = 13;
                     }
                 } else if (c == '.') {
                     estado = 9;
@@ -46,7 +46,7 @@ public class Automato {
                 if (Character.isDigit(c)) {
                     estado = 2;
                 } else if (c == 'x') {
-                    estado = 21;
+                    estado = 11;
                 } else if (c == '.') {
                     estado = 5;
                 } else {
@@ -110,23 +110,63 @@ public class Automato {
                 } else {
                     retornaToken(0); // rejeita só o '.'
                 }
-            } else if (estado == 27) {
+            } else if (estado == 10) {
                 if (c == 'x') {
-                    estado = 20;
-                } else if (Character.isAlphabetic(c)) {
-                    estado = 41;
+                    estado = 11;
+                } else {
+                    retornaToken(0);
                 }
-            } else if (estado == 20) {
+            } else if (estado == 11) {
                 if (Character.isDigit(c) || (c >= 'A' && c <= 'F')) {
-                    estado = 21;
+                    estado = 11;
                 } else {
                     retornaToken(3);
                 }
-            } else if (estado == 21) {
-                if (Character.isDigit(c) || (c >= 'A' && c <= 'F')) {
-                    estado = 21;
+            } else if (estado == 12) {
+                if (Character.isAlphabetic(c) && Character.isLowerCase(c)) {
+                    switch (lexema) {
+                        case "rotina":
+                            retornaToken(5);
+                            break;
+                        case "fim_rotina":
+                        case "se":
+                        case "senao":
+                        case "imprima":
+                        case "leia":
+                        case "para":
+                        case "enquanto":
+
+                        default:
+                            estado = 12;
+                            break;
+                    }
                 } else {
-                    retornaToken(3);
+                    retornaToken(0);
+                }
+
+            } else if (estado == 13) {
+                if (Character.isAlphabetic(c)) {
+                    if (Character.isUpperCase(c)) {
+                        estado = 14;
+                    } else {
+                        estado = 12;
+                    }
+                }
+            } else if (estado == 14) {
+                if (!Character.isAlphabetic(c)) {
+                    retornaToken(4);
+                } else if (Character.isAlphabetic(c) && Character.isLowerCase(c)) {
+                    estado = 15;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 15) {
+                if (!Character.isAlphabetic(c)) {
+                    retornaToken(4);
+                } else if (Character.isAlphabetic(c) && Character.isUpperCase(c)) {
+                    estado = 14;
+                } else {
+                    retornaToken(0);
                 }
             }
             if (c == '\n') {
@@ -138,23 +178,23 @@ public class Automato {
             // System.out.println("->" + estado); // verificar os estados na hora de debugar
         }
 
-        /*
-         * // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de
-         * não
-         * // ter retornado o token)
-         * if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
-         * retornaToken(1);
-         * }
-         * if (estado == 6 || estado == 5 || estado == 9 || estado == 7) {
-         * retornaToken(2);
-         * }
-         * if (estado == 8) {
-         * retornaToken(0);
-         * }
-         * if (estado == 27 || estado == 41 || estado == 20 || estado == 21) {
-         * retornaToken(3);
-         * }
-         */
+        // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de não
+        // ter retornado o token)
+        if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
+            retornaToken(1);
+        }
+        if (estado == 6 || estado == 5 || estado == 9 || estado == 7) {
+            retornaToken(2);
+        }
+        if (estado == 8) {
+            retornaToken(0);
+        }
+        if (estado == 10 || estado == 41 || estado == 11 || estado == 21) {
+            retornaToken(3);
+        }
+        if (estado == 12 || estado == 15 || estado == 14) {
+            retornaToken(4);
+        }
     }
 
     /*
@@ -162,12 +202,16 @@ public class Automato {
      * 0 = TK_ERRO
      * 1 = TK_INT
      * 2 = TK_FLOAT
+     * 3 = TK_HEX
+     * 4 = TK_ID
+     * 5 = TK_PALAVRA
      */
     public static void retornaToken(int x) {
         retornaToken(x, currentLine, currentColumn);
     }
 
     public static void retornaToken(int x, int line, int column) {
+
         estado = 0;
         String tokenName = "";
         switch (x) {
@@ -184,7 +228,10 @@ public class Automato {
                 tokenName = "TK_HEX";
                 break;
             case 4:
-                tokenName = "TK_OPERADOR";
+                tokenName = "TK_ID";
+                break;
+            case 5:
+                tokenName = "TK_PALAVRA";
                 break;
         }
         if (tokenUnico) {
@@ -193,6 +240,7 @@ public class Automato {
         System.out.printf("| %-3d | %-3d | %-15s | %-21s |\n+-----+-----+-----------------+-----------------------+\n",
                 line, column, tokenName, lexema);
         lexema = "";
+        tokenUnico = false;
     }
 
     // Função para converter o arquivo em uma string (pega da internet)
