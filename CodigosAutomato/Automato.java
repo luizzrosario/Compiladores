@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Automato {
+    // objeto para o erro: descrição, linha e coluna
     static class ErroInfo {
         String erro;
         int linha;
@@ -20,12 +21,14 @@ public class Automato {
     }
 
     // inicio no estado 0
-    
     private static int estado = 0;
     private static int currentLine = 1;
     private static int currentColumn = 1;
-    static String lexema = "";
+    private static String lexema = "";
+    // boolean para os tokens que não precisam de retorno de lexema
     private static boolean tokenUnico = false;
+    // pilha para verificar se os parenteses estão balanceados (completamente
+    // desnecessário.)
     private static Stack<Character> pilhaParenteses = new Stack<>();
     private static int i;
     // Lista para a contagem de tokens
@@ -36,22 +39,27 @@ public class Automato {
             "TK_MULTIPLICACAO", "TK_DIVISAO", "TK_NEGAR", "TK_E", "TK_OU" };
     private static int[] contagemTokens = new int[nomesTokens.length];
     static List<ErroInfo> erros = new ArrayList<>();
+    static boolean comentario = false;
 
     public static void main(String[] args) {
+        /*
+         * 
+         * AQUI PARA MODIFICAR O ARQUIVO DE ENTRADA, BASTA MUDAR O CAMINHO DO ARQUIVO
+         * 
+         */
 
         // convertendo o arquivo para uma array de char
-        String codigo = fileToString("../CodigosAutomato/entrada.txt");
-
+        String codigo = fileToString("entrada3.txt");
         System.out.println(
                 "+-----+-----+-----------------+-----------------------+\n| LIN | COL |     TOKEN       |        LEXEMA         |\n+-----+-----+-----------------+-----------------------+");
-        // um for each para percorrer o array
+        // loop para percorrer o código
         for (i = 0; i < codigo.length(); i++) {
+            // indica onde está o char atual
             char c = codigo.charAt(i);
+            // junta os chars analisados para formar o lexema
             if (c != '\n') {
                 lexema += c;
             }
-            // printar o c a ser analisado
-            // System.out.printf("%c", c);
             // basicamente o loop consiste em verificar o estado atual (em int) e o char
             // atual
             if (estado == 0) {
@@ -67,7 +75,6 @@ public class Automato {
                     estado = 9;
                 } else if (c == ' ') { // reconhecer o espaço para não printar o TK_ERRO (Ainda não tratado)
                     lexema = "";
-                    estado = 0;
                 } else if (c == '"') {
                     estado = 30;
                 } else if (c == '#') {
@@ -79,7 +86,7 @@ public class Automato {
                     retornaToken(16);
                 } else if (c == ')') {
                     if (pilhaParenteses.isEmpty() || pilhaParenteses.pop() != '(') {
-                        //erros.add(new ErroInfo("sem parentesis de abertura"));
+                        // erros.add(new ErroInfo("sem parentesis de abertura"));
                         retornaToken(0); // erro de parêntesis
                     } else if (c == ')') {
                         retornaToken(17);
@@ -105,7 +112,7 @@ public class Automato {
                 } else if (c == '>') {
                     estado = 38;
                 } else {
-                    //erros.add(new ErroInfo("caractere inválido"));
+                    // erros.add(new ErroInfo("caractere inválido"));
                     retornaToken(0);
                     lexema = "";
                 }
@@ -251,7 +258,7 @@ public class Automato {
                     } else {
                         estado = 12;
                     }
-                } else{
+                } else {
                     erros.add(new ErroInfo("caractere inválido"));
                     retornaToken(0);
                 }
@@ -397,6 +404,7 @@ public class Automato {
                 }
             } else if (estado == 33) {
                 if (c == '<') {
+                    erros.add(new ErroInfo("comentário não fechado"));
                     estado = 34;
                 } else {
                     erros.add(new ErroInfo("caractere inválido"));
@@ -415,6 +423,7 @@ public class Automato {
                     estado = 34;
                 }
             } else if (estado == 36) {
+                erros.remove(erros.size() - 1);
                 if (c == '>') {
                     retornaToken(15);
                 } else {
@@ -436,21 +445,21 @@ public class Automato {
                 erros.add(new ErroInfo("estado inválido"));
                 retornaToken(0);
             }
+            // responsáveis pela contagem de linhas e colunas
             if (c == '\n') {
                 currentLine++;
                 currentColumn = 1;
             } else {
                 currentColumn++;
             }
-            
-            //System.out.println(currentLine + " " + currentColumn + " " + c + " " + estado);
-            //System.out.println(lexema);
-            //System.out.println("\n->" + estado); // verificar os estados na hora de
+
+            // System.out.println(lexema);
+            // System.out.println("\n->" + estado); // verificar os estados na hora de
             // debugar
         }
 
         // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de não
-        // ter retornado o token)
+        // ter terminado)
 
         if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
             retornaToken(1);
@@ -468,12 +477,15 @@ public class Automato {
             retornaToken(4);
         }
 
+        // Chamada de função para imprimir a tabela com a contagem de tokens
         imprimirTabela();
-        if (erros.size() > 0) {
-            System.out.println("Erros encontrados:");
-            for (ErroInfo erro : erros) {
-                System.out.printf("Erro: %s na linha %d, coluna %d\n", erro.erro, erro.linha, erro.coluna);
-            }
+
+        // Imprime o código
+        System.out.println("\n" + codigo);
+
+        // Imprime os erros
+        for (ErroInfo erro : erros) {
+            System.out.printf("Erro: %s\nLinha: %d\nColuna: %d\n\n", erro.erro, erro.linha, erro.coluna);
         }
     }
 
@@ -518,24 +530,18 @@ public class Automato {
         retornaToken(x, currentLine, currentColumn);
     }
 
-    public static void consertaPonteiro() {
-        i--;
-        lexema = lexema.substring(0, lexema.length() - 1);
-    }
-
     public static void retornaToken(int x, int line, int column) {
         estado = 0;
         String tokenName = "";
         switch (x) {
             case 0:
-                //tokenName = "TK_ERRO";
-                //break;
-                
+                // tokenName = "TK_ERRO";
+                // break;
                 lexema = "";
                 return;
             case 1:
                 i--;
-                //lexema = lexema.substring(0, lexema.length() - 1);
+                lexema = lexema.substring(0, lexema.length() - 1);
                 tokenName = "TK_INT";
                 break;
             case 2:
@@ -659,7 +665,7 @@ public class Automato {
         if (tokenUnico) {
             lexema = "";
         }
-        
+
         System.out.printf("| %-3d | %-3d | %-15s | %-21s |\n+-----+-----+-----------------+-----------------------+\n",
                 line, column, tokenName, lexema);
         lexema = "";
@@ -691,12 +697,11 @@ public class Automato {
         System.out.println("+-----------------+-------------------+");
         System.out.println("|     Token       |     Contagem      |");
         System.out.println("+-----------------+-------------------+");
-    
+
         // Criar uma cópia dos arrays para ordenação
         String[] nomesTokensOrdenados = Arrays.copyOf(nomesTokens, nomesTokens.length);
         int[] contagemTokensOrdenados = Arrays.copyOf(contagemTokens, contagemTokens.length);
-    
-        
+
         // Ordenar os arrays baseados na contagem de tokens
         for (int i = 0; i < contagemTokensOrdenados.length - 1; i++) {
             for (int j = i + 1; j < contagemTokensOrdenados.length; j++) {
@@ -705,7 +710,7 @@ public class Automato {
                     int tempContagem = contagemTokensOrdenados[i];
                     contagemTokensOrdenados[i] = contagemTokensOrdenados[j];
                     contagemTokensOrdenados[j] = tempContagem;
-    
+
                     // Trocar os tokens correspondentes
                     String tempToken = nomesTokensOrdenados[i];
                     nomesTokensOrdenados[i] = nomesTokensOrdenados[j];
@@ -713,15 +718,16 @@ public class Automato {
                 }
             }
         }
-    
+
         // Imprimir os tokens ordenados por contagem
         for (int j = 0; j < nomesTokensOrdenados.length; j++) {
             int contagem = contagemTokensOrdenados[j];
             if (contagem > 0) {
-                System.out.printf("| %-15s | %-17d |\n+-----------------+-------------------+\n", nomesTokensOrdenados[j], contagem);
+                System.out.printf("| %-15s | %-17d |\n+-----------------+-------------------+\n",
+                        nomesTokensOrdenados[j], contagem);
             }
         }
-        
+
     }
 
 }
