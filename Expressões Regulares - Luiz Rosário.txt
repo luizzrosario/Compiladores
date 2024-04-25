@@ -1,5 +1,3 @@
-(Desatualizado)
-
 Int: [0-9]([0-9])*¬[0-9]
 
 Float: (.+[0-9].+[0-9][0-9].+[0-9][0-9][0-9].)¬([0-9], e)+((.+[0-9].+[0-9][0-9].+[0-9][0-9][0-9].)e[0-9]+(.+[0-9].+[0-9][0-9].+[0-9][0-9][0-9].)e-[0-9])([0-9])*¬[0-9]
@@ -8,15 +6,15 @@ Variavel: [a-z][A-Z]¬[aA-zZ]+[a-z][A-Z][a-z]([A-Z][a-z])*[A-Z]¬[aA-zZ]
 
 Endereço: [0-9A-F]x[0-9A-F]([0-9A-F])*¬[0-9A-F]
 
-Palavra Reservada: [a-z][a-z]([a-z], _)*Palavra Reservada
+Palavra Reservada: [a-z][a-z]([a-z], _)*$
 
-Data: ([0-9][0-9]-[0-9][0-9]-[0-9]+[0-9][0-9]/[0-9][0-9]/[0-9])[0-9][0-9][0-9]
+Data: ([0_9][0_9]_[0_9][0_9]_[0_9]+[0_9][0_9]/[0_9][0_9]/[0_9])[0_9][0_9][0_9]
 
-Cadeia: "(Qualquer coisa)*"
+Cadeia: "(¬(\n))*"
 
-Comentário 1: #(Qualquer coisa)*\n
+Comentário 1: #(¬(\n))*\n
 
-Comentário 2: <<<(Qualquer coisa)*>>>
+Comentário 2: <<<(¬(>>>)*>>>
 
 Cada um dos operadores, em suas expressões regulares, resumidamente são eles mesmos.
 
