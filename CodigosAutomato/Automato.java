@@ -1,14 +1,16 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Stack;
 
 public class Automato {
     // inicio no estado 0
     private static int estado = 0;
     private static int currentLine = 1;
     private static int currentColumn = 1;
-    private static String lexema = "";
+    static String lexema = "";
     private static boolean tokenUnico = false;
+    private static Stack<Character> pilhaParenteses = new Stack<>();
 
     public static void main(String[] args) {
 
@@ -39,6 +41,21 @@ public class Automato {
                     estado = 9;
                 } else if (c == ' ') { // reconhecer o espaço para não printar o TK_ERRO (Ainda não tratado)
                     lexema = "";
+                } else if (c == '"') {
+                    estado = 30;
+                } else if (c == '#') {
+                    estado = 31;
+                } else if (c == '<') {
+                    estado = 32;
+                } else if (c == '(') {
+                    pilhaParenteses.push(c);
+                    retornaToken(16);
+                } else if (c == ')') {
+                    if (pilhaParenteses.isEmpty() || pilhaParenteses.pop() != '(') {
+                        retornaToken(0); // erro de parêntesis
+                    } else if (c == ')') {
+                        retornaToken(17);
+                    }
                 } else {
                     lexema = "";
                 }
@@ -49,6 +66,8 @@ public class Automato {
                     estado = 11;
                 } else if (c == '.') {
                     estado = 5;
+                } else if (Character.isAlphabetic(c)) {
+                    retornaToken(0);
                 } else {
                     retornaToken(1); // retorno de token de inteiro (caso 1)
                 }
@@ -57,6 +76,10 @@ public class Automato {
                     estado = 3;
                 } else if (c == '.') {
                     estado = 5;
+                } else if (c == '/') {
+                    estado = 16;
+                } else if (c == '_') {
+                    estado = 17;
                 } else {
                     retornaToken(1);
                 }
@@ -73,6 +96,8 @@ public class Automato {
                     estado = 4; // loop para reconhecer mais de um digito no inteiro
                 } else if (c == '.') {
                     retornaToken(0); // aqui é a filtragem para mais que 4 dígitos antes do ponto
+                } else if (Character.isAlphabetic(c)) {
+                    retornaToken(0); // rejeita caso tenha letra no meio do número
                 } else {
                     retornaToken(1);
                 }
@@ -123,23 +148,21 @@ public class Automato {
                     retornaToken(3);
                 }
             } else if (estado == 12) {
-                lexema.replace(" ", "");
+                lexema = lexema.replace(" ", "");
                 if (lexema.equals("rotina") || lexema.equals("fim_rotina") || lexema.equals("se")
                         || lexema.equals("senao") || lexema.equals("imprima") || lexema.equals("leia")
                         || lexema.equals("para") || lexema.equals("enquanto")) {
                     tokenUnico = true;
                 }
-
-                if ((Character.isAlphabetic(c) && Character.isLowerCase(c) || c == '_')) {
+                if (lexema.equals("se")) {
+                    retornaToken(7);
+                } else if ((Character.isAlphabetic(c) && Character.isLowerCase(c) || c == '_')) {
                     switch (lexema) {
                         case "rotina":
                             retornaToken(5);
                             break;
                         case "fim_rotina":
                             retornaToken(6);
-                            break;
-                        case "se":
-                            retornaToken(7);
                             break;
                         case "senao":
                             retornaToken(8);
@@ -166,7 +189,9 @@ public class Automato {
                 }
 
             } else if (estado == 13) {
-                if (Character.isAlphabetic(c)) {
+                if (lexema.equals("se")) {
+                    estado = 12;
+                } else if (Character.isAlphabetic(c)) {
                     if (Character.isUpperCase(c)) {
                         estado = 14;
                     } else {
@@ -189,6 +214,136 @@ public class Automato {
                 } else {
                     retornaToken(0);
                 }
+            } else if (estado == 16) {
+                if (Character.isDigit(c)) {
+                    estado = 18;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 18) {
+                if (Character.isDigit(c)) {
+                    estado = 20;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 20) {
+                if (c == '/') {
+                    estado = 22;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 22) {
+                if (Character.isDigit(c)) {
+                    estado = 24;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 24) {
+                if (Character.isDigit(c)) {
+                    estado = 26;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 26) {
+                if (Character.isDigit(c)) {
+                    estado = 28;
+                } else {
+                    retornaToken(13);
+                }
+            } else if (estado == 28) {
+                if (Character.isDigit(c)) {
+                    retornaToken(13);
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 17) {
+                if (Character.isDigit(c)) {
+                    estado = 19;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 19) {
+                if (Character.isDigit(c)) {
+                    estado = 21;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 21) {
+                if (c == '_') {
+                    estado = 23;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 23) {
+                if (Character.isDigit(c)) {
+                    estado = 25;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 25) {
+                if (Character.isDigit(c)) {
+                    estado = 27;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 27) {
+                if (Character.isDigit(c)) {
+                    estado = 29;
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 29) {
+                if (Character.isDigit(c)) {
+                    retornaToken(13);
+                } else {
+                    retornaToken(0);
+                }
+            } else if (estado == 30) {
+                if (c == '"') {
+                    retornaToken(14);
+                } else if (c == '\n') {
+                    retornaToken(0);
+                } else {
+                    estado = 30;
+                }
+            } else if (estado == 31) {
+                if (c == '\n') {
+                    retornaToken(15);
+                } else {
+                    estado = 31;
+                }
+            } else if (estado == 32) {
+                if (c == '<') {
+                    estado = 33;
+                } else {
+                    // operador
+                }
+            } else if (estado == 33) {
+                if (c == '<') {
+                    estado = 34;
+                } else {
+                    // operador
+                }
+            } else if (estado == 34) {
+                if (c == '>') {
+                    estado = 35;
+                } else {
+                    estado = 34;
+                }
+            } else if (estado == 35) {
+                if (c == '>') {
+                    estado = 36;
+                } else {
+                    estado = 34;
+                }
+            } else if (estado == 36) {
+                if (c == '>') {
+                    retornaToken(15);
+                } else {
+                    estado = 34;
+                }
+            } else {
+                retornaToken(0);
             }
             if (c == '\n') {
                 currentLine++;
@@ -196,12 +351,16 @@ public class Automato {
             } else {
                 currentColumn++;
             }
-            // System.out.println("->" + estado); // verificar os estados na hora de debugar
+            // System.out.println(lexema);
+            // System.out.println("\n->" + estado); // verificar os estados na hora de
+            // debugar
         }
 
         // Verifica o ultimo estado (no caso quando o loop termina, pode ocorrer de não
         // ter retornado o token)
-        if (estado == 4 || estado == 3 || estado == 2 || estado == 1) {
+        if (estado == 4 || estado == 3 || estado == 2 || estado == 1)
+
+        {
             retornaToken(1);
         }
         if (estado == 6 || estado == 5 || estado == 9 || estado == 7) {
@@ -225,7 +384,19 @@ public class Automato {
      * 2 = TK_FLOAT
      * 3 = TK_HEX
      * 4 = TK_ID
-     * 5 = TK_PALAVRA
+     * 5 = TK_ROTINA
+     * 6 = TK_FIM_ROTINA
+     * 7 = TK_SE
+     * 8 = TK_SENAO
+     * 9 = TK_IMPRIMA
+     * 10 = TK_LEIA
+     * 11 = TK_PARA
+     * 12 = TK_ENQUANTO
+     * 13 = TK_DATA
+     * 14 = TK_CADEIA
+     * 15 = TK_COMENTARIO
+     * 16 = TK_ABRE_PARENTESIS
+     * 17 = TK_FECHA_PARENTESIS
      */
     public static void retornaToken(int x) {
         retornaToken(x, currentLine, currentColumn);
@@ -274,6 +445,21 @@ public class Automato {
                 break;
             case 12:
                 tokenName = "TK_ENQUANTO";
+                break;
+            case 13:
+                tokenName = "TK_DATA";
+                break;
+            case 14:
+                tokenName = "TK_CADEIA";
+                break;
+            case 15:
+                tokenName = "TK_COMENTARIO";
+                break;
+            case 16:
+                tokenName = "TK_ABRE_PAREN";
+                break;
+            case 17:
+                tokenName = "TK_FECHA_PAREN";
                 break;
         }
         if (tokenUnico) {
