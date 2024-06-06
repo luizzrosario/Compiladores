@@ -6,7 +6,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         // Ler o programa do arquivo "codigo.txt"
-        List<String> programa = lerArquivo("codigo.txt");
+        List<String> programa = lerArquivo("exemplo1.txt");
         // Se o programa foi lido com sucesso
         if (programa != null) {
             // Criar um objeto Parser
